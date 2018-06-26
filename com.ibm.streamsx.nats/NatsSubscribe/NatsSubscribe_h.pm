@@ -1,5 +1,5 @@
 
-package NatsSource_h;
+package NatsSubscribe_h;
 use strict; use Cwd 'realpath';  use File::Basename;  use lib dirname(__FILE__);  use SPL::Operator::Instance::OperatorInstance; use SPL::Operator::Instance::Annotation; use SPL::Operator::Instance::Context; use SPL::Operator::Instance::Expression; use SPL::Operator::Instance::ExpressionTree; use SPL::Operator::Instance::ExpressionTreeEvaluator; use SPL::Operator::Instance::ExpressionTreeVisitor; use SPL::Operator::Instance::ExpressionTreeCppGenVisitor; use SPL::Operator::Instance::InputAttribute; use SPL::Operator::Instance::InputPort; use SPL::Operator::Instance::OutputAttribute; use SPL::Operator::Instance::OutputPort; use SPL::Operator::Instance::Parameter; use SPL::Operator::Instance::StateVariable; use SPL::Operator::Instance::TupleValue; use SPL::Operator::Instance::Window; 
 sub main::generate($$) {
    my ($xml, $signature) = @_;  
@@ -40,9 +40,18 @@ sub main::generate($$) {
    print "\n";
    print '  // Punctuation processing', "\n";
    print '  void process(Punctuation const & punct, uint32_t port);', "\n";
+   print "\n";
+   print "\n";
+   print '  static void closedCb(natsConnection * nc, void * closure);', "\n";
+   print '  static void disconnectedCb(natsConnection * nc, void * closure);', "\n";
+   print '  static void reconnectedCb(natsConnection * nc, void * closure);', "\n";
+   print "\n";
+   print '  Metric * isConnected;', "\n";
+   print '  Metric * nDisconnects;', "\n";
    print 'private:', "\n";
    print '  // Members', "\n";
-   print '  natsConnection * nc;', "\n";
+   print '  natsOptions * opts;', "\n";
+   print '  natsConnection * conn;', "\n";
    print '  natsSubscription * sub;', "\n";
    print '  natsMsg * msg;', "\n";
    print '};', "\n";

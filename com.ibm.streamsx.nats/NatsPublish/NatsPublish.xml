@@ -24,7 +24,7 @@
           <name>content</name>
           <description>The content of the message to write to NATS</description>
           <optional>false</optional>
-          <rewriteAllowed>true</rewriteAllowe>
+          <rewriteAllowed>true</rewriteAllowed>
           <expressionMode>Expression</expressionMode>
           <type>blob</type>
           <cardinality>1</cardinality>
