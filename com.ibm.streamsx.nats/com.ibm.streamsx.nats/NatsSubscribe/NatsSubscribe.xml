@@ -11,8 +11,8 @@
           <cmn:description>nats</cmn:description>
           <cmn:managedLibrary>
             <cmn:lib>nats</cmn:lib>
-            <cmn:libPath>../../impl/lib</cmn:libPath>
-            <cmn:includePath>../../impl/include</cmn:includePath>
+            <cmn:libPath>../../lib</cmn:libPath>
+            <cmn:includePath>../../include</cmn:includePath>
           </cmn:managedLibrary>
         </library>
       </libraryDependencies>

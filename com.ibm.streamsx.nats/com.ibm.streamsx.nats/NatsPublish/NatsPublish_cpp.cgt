@@ -95,9 +95,10 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
 {
     <% my $content = $model->getParameterByName("content")->getValueAt(0)->getCppExpression(); %>
+    <% my $subject = $model->getParameterByName("subject")->getValueAt(0)->getCppExpression(); %>
     SPL::blob content = <%=SPL::CodeGen::adaptCppExpression($content, "tuple")%>;
 
-    natsConnection_Publish(this->conn, content.getData(), content.getSize());
+    natsConnection_Publish(this->conn, <%=$subject%>.c_str(), content.getData(), content.getSize());
 }
 
 // Punctuation processing

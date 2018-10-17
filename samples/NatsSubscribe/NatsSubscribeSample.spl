@@ -1,6 +1,6 @@
 use com.ibm.streamsx.nats::NatsSubscribe;
 
-composite NatsTest {
+composite NatsSubscribeSample {
     graph
         stream<blob data> natsMsgs = NatsSubscribe() {
             param
@@ -13,6 +13,6 @@ composite NatsTest {
         }
 
         () as sink = Custom(natsMsgs) {
-            //logic onTuple natsMsgs: println(convertFromBlob(natsMsgs.data));
+            logic onTuple natsMsgs: println(convertFromBlob(natsMsgs.data));
         }
 }

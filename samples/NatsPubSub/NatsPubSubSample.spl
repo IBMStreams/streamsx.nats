@@ -1,0 +1,39 @@
+use com.ibm.streamsx.nats::NatsPublish;
+use com.ibm.streamsx.nats::NatsSubscribe;
+
+composite NatsPubSubSample {
+    graph
+
+        stream<blob data> Beat = Beacon() {
+            param
+                period : 1.0; // Every second
+                initDelay : 3.0;
+                
+            output Beat : data = convertToBlob("Hello Nats #" + (rstring)IterationCount());
+        }
+
+        () as NatsSink = NatsPublish(Beat) {
+            param
+                hostname : "localhost";
+                port : 94222;
+                subject : "foo";
+                skipVerification : true;
+                content : data;
+        }
+
+
+
+        stream<blob data> natsMsgs = NatsSubscribe() {
+            param
+                hostname: "localhost";
+                port: 4222;
+                subject: "foo";
+                queueGroup: "group1";
+
+                skipVerification: true;
+        }
+
+        () as sink = Custom(natsMsgs) {
+            logic onTuple natsMsgs: println("Received: " + convertFromBlob(natsMsgs.data));
+        }
+}
