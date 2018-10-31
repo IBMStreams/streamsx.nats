@@ -9,17 +9,19 @@ composite NatsPubSubSample {
                 period : 1.0; // Every second
                 initDelay : 3.0;
                 
-            output Beat : data = convertToBlob("Hello Nats #" + (rstring)IterationCount());
+            output Beat : data = convertToBlob("Hello Nats!!! #" + (rstring)IterationCount());
         }
 
         () as NatsSink = NatsPublish(Beat) {
             param
                 hostname : "localhost";
-                port : 94222;
+                port : 4222;
                 subject : "foo";
                 skipVerification : true;
                 content : data;
+
         }
+
 
 
 
