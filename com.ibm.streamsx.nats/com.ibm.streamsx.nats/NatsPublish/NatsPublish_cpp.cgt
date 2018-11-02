@@ -1,12 +1,11 @@
 /* Additional includes go here */
-
+using namespace std;
 <%SPL::CodeGen::implementationPrologue($model);%>
 
 // Constructor
 MY_OPERATOR::MY_OPERATOR()
 {
     OperatorMetrics & opm = getContext().getMetrics();
-
     this->isConnected = &opm.createCustomMetric("isConnected", "Is there an active connection to the NATS server", Metric::Gauge);
     this->nDisconnects = &opm.createCustomMetric("nDisconnects", "Number of times disconnected from the NATS server", Metric::Counter);
 }
@@ -19,61 +18,76 @@ MY_OPERATOR::~MY_OPERATOR()
 // Notify port readiness
 void MY_OPERATOR::allPortsReady()
 {
-  natsOptions_Create(&(this->opts));
+  natsOptionsCreateStatus = natsOptions_Create(&(this->opts));
+  if (natsOptionsCreateStatus == NATS_OK) {
+      SPLAPPTRC(L_INFO, "[NatsPublish] Publish options successfully created.", "");
+      setupConnection();
+   } else {
+       SPLAPPTRC(L_ERROR, "[NatsPublish] Received invalid nats options", "");
+       throw std::invalid_argument( "[NatsPublish] Received invalid nats options" );
+   }
+}
 
-  // set up the initial connection
-  std::string hostname = <%=$model->getParameterByName("hostname")->getValueAt(0)->getCppExpression()%>;
-  int port = <%=$model->getParameterByName("port")->getValueAt(0)->getCppExpression()%>;
-  // TODO fail if port is out of bounds
+void MY_OPERATOR::setupConnection()
+{
+    // set up the initial connection
+    std::string hostname = <%=$model->getParameterByName("hostname")->getValueAt(0)->getCppExpression()%>;
+    int port = <%=$model->getParameterByName("port")->getValueAt(0)->getCppExpression()%>;
+    // TODO fail if port is out of bounds
+    char * portString = new char[6];
+    memset(portString, 0, 6);
+    snprintf(portString, 6, "%d", port);
 
-  char * portString = new char[6];
-  memset(portString, 0, 6);
-  snprintf(portString, 6, "%d", port);
+    <% if (defined $model->getParameterByName("token")) { %>
+        std::string token = <%=$model->getParameterByName("token")->getValueAt(0)->getCppExpression()%>;
+        std::string url = "nats://" + token + "@" + hostname + ":" + std::string(portString);
+        <% } else { %>
+        std::string url = "nats://" + hostname + ":" + std::string(portString);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("token")) { %>
-      std::string token = <%=$model->getParameterByName("token")->getValueAt(0)->getCppExpression()%>;
-      std::string url = "nats://" + token + "@" + hostname + ":" + std::string(portString);
-  <% } else { %>
-      std::string url = "nats://" + hostname + ":" + std::string(portString);
-  <% } %>
+    natsOptions_SetURL(this->opts, url.c_str());
 
-  natsOptions_SetURL(this->opts, url.c_str());
+    <% if (defined $model->getParameterByName("trustedCertificates")) { %>
+        natsOptions_LoadCATrustedCertificates(this->opts, <%=$model->getParameterByName("trustedCertificates")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("trustedCertificates")) { %>
-    natsOptions_LoadCATrustedCertificates(this->opts, <%=$model->getParameterByName("trustedCertificates")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("certificateFile") and defined $model->getParameterByName("privateKey")) { %>
+        <% my $certificateFile = $model->getParameterByName("certificateFile")->getValueAt(0)->getCppExpression(); %>
+        <% my $privateKey = $model->getParameterByName("privateKey")->getValueAt(0)->getCppExpression(); %>
+        natsOptions_LoadCertificatesChain(this->opts, <%=$certificateFile%>, <%=$privateKey%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("certificateFile") and defined $model->getParameterByName("privateKey")) { %>
-    <% my $certificateFile = $model->getParameterByName("certificateFile")->getValueAt(0)->getCppExpression(); %>
-    <% my $privateKey = $model->getParameterByName("privateKey")->getValueAt(0)->getCppExpression(); %>
-    natsOptions_LoadCertificatesChain(this->opts, <%=$certificateFile%>, <%=$privateKey%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("isSecure")) { %>
+        natsOptions_SetSecure(this->opts, <%=$model->getParameterByName("isSecure")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("isSecure")) { %>
-      natsOptions_SetSecure(this->opts, <%=$model->getParameterByName("isSecure")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("skipVerification")) { %>
+        natsOptions_SkipServerVerification(this->opts, <%=$model->getParameterByName("skipVerification")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("skipVerification")) { %>
-      natsOptions_SkipServerVerification(this->opts, <%=$model->getParameterByName("skipVerification")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("allowReconnect")) { %>
+        natsOptions_SetAllowReconnect(this->opts, <%=$model->getParameterByName("allowReconnect")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("allowReconnect")) { %>
-    natsOptions_SetAllowReconnect(this->opts, <%=$model->getParameterByName("allowReconnect")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("reconnectAttempts")) { %>
+        natsOptions_SetMaxReconnect(this->opts, <%=$model->getParameterByName("reconnectAttempts")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("reconnectAttempts")) { %>
-      natsOptions_SetMaxReconnect(this->opts, <%=$model->getParameterByName("reconnectAttempts")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    <% if (defined $model->getParameterByName("reconnectDelay")) { %>
+        natsOptions_SetReconnectWait(this->opts, <%=$model->getParameterByName("reconnectDelay")->getValueAt(0)->getCppExpression()%>);
+        <% } %>
 
-  <% if (defined $model->getParameterByName("reconnectDelay")) { %>
-      natsOptions_SetReconnectWait(this->opts, <%=$model->getParameterByName("reconnectDelay")->getValueAt(0)->getCppExpression()%>);
-  <% } %>
+    natsOptions_SetClosedCB(this->opts, MY_OPERATOR::closedCb, (void *) this);
+    natsOptions_SetDisconnectedCB(this->opts, MY_OPERATOR::disconnectedCb, (void *) this);
+    natsOptions_SetReconnectedCB(this->opts, MY_OPERATOR::reconnectedCb, (void *) this);
+    connectionStatus = natsConnection_Connect(&(this->conn), this->opts);
 
-  natsOptions_SetClosedCB(this->opts, MY_OPERATOR::closedCb, (void *) this);
-  natsOptions_SetDisconnectedCB(this->opts, MY_OPERATOR::disconnectedCb, (void *) this);
-  natsOptions_SetReconnectedCB(this->opts, MY_OPERATOR::reconnectedCb, (void *) this);
-
-  natsConnection_Connect(&(this->conn), this->opts);
+    if (connectionStatus == NATS_OK) {
+        SPLAPPTRC(L_INFO, "[NatsPublish] Successfully connected to nats server", "");
+    } else {
+        SPLAPPTRC(L_ERROR, "[NatsPublish] " << natsStatus_GetText(connectionStatus), "");
+        throw std::runtime_error(natsStatus_GetText(connectionStatus));
+    }
 }
 
 // Notify pending shutdown
@@ -97,8 +111,14 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
     <% my $content = $model->getParameterByName("content")->getValueAt(0)->getCppExpression(); %>
     <% my $subject = $model->getParameterByName("subject")->getValueAt(0)->getCppExpression(); %>
     SPL::blob content = <%=SPL::CodeGen::adaptCppExpression($content, "tuple")%>;
+    natsPublishStatus = natsConnection_Publish(this->conn, <%=$subject%>.c_str(), content.getData(), content.getSize());
 
-    natsConnection_Publish(this->conn, <%=$subject%>.c_str(), content.getData(), content.getSize());
+    if (natsPublishStatus == NATS_OK) {
+        SPLAPPTRC(L_INFO, "[NatsPublish] Successfully published message", "");
+    } else {
+        SPLAPPTRC(L_ERROR, "[NatsPublish] " << natsStatus_GetText(natsPublishStatus) , "");
+        throw std::runtime_error(natsStatus_GetText(natsPublishStatus));
+    }
 }
 
 // Punctuation processing
@@ -108,7 +128,6 @@ void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
 
 void MY_OPERATOR::closedCb(natsConnection * nc, void * closure) {
     SPLAPPTRC(L_INFO, "[NatsSubscribe] Connection closed", "");
-
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(0);
 }

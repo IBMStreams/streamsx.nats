@@ -16,6 +16,9 @@ public:
   // Notify port readiness
   void allPortsReady();
 
+  // Setup Connection
+  void setupConnection();
+
   // Notify pending shutdown
   void prepareToShutdown();
 
@@ -44,6 +47,9 @@ private:
   natsConnection * conn;
   natsSubscription * sub;
   natsMsg * msg;
+  natsStatus connectionStatus;
+  natsStatus natsOptionsCreateStatus;
+  natsStatus natsPublishStatus;
 };
 
 <%SPL::CodeGen::headerEpilogue($model);%>
