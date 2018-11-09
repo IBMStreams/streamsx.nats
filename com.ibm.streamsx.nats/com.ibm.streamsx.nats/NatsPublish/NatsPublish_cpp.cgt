@@ -114,7 +114,7 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
     natsPublishStatus = natsConnection_Publish(this->conn, <%=$subject%>.c_str(), content.getData(), content.getSize());
 
     if (natsPublishStatus == NATS_OK) {
-        SPLAPPTRC(L_INFO, "[NatsPublish] Successfully published message", "");
+        SPLAPPTRC(L_DEBUG, "[NatsPublish] Successfully published message", "");
     } else {
         SPLAPPTRC(L_ERROR, "[NatsPublish] " << natsStatus_GetText(natsPublishStatus) , "");
         throw std::runtime_error(natsStatus_GetText(natsPublishStatus));
@@ -127,13 +127,13 @@ void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
 }
 
 void MY_OPERATOR::closedCb(natsConnection * nc, void * closure) {
-    SPLAPPTRC(L_INFO, "[NatsSubscribe] Connection closed", "");
+    SPLAPPTRC(L_INFO, "[NatPublish] Connection closed", "");
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(0);
 }
 
 void MY_OPERATOR::disconnectedCb(natsConnection * nc, void * closure) {
-    SPLAPPTRC(L_INFO, "[NatsSubscribe] Disconnected from server", "");
+    SPLAPPTRC(L_WARN, "[NatPublish] Disconnected from server", "");
 
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(0);
@@ -141,7 +141,7 @@ void MY_OPERATOR::disconnectedCb(natsConnection * nc, void * closure) {
 }
 
 void MY_OPERATOR::reconnectedCb(natsConnection * nc, void * closure) {
-    SPLAPPTRC(L_INFO, "[NatsSubscribe] Reconnected to server", "");
+    SPLAPPTRC(L_WARN, "[NatsPublish] Reconnected to server", "");
 
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(1);

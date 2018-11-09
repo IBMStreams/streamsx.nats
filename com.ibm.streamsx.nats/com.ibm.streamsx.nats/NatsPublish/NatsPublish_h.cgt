@@ -50,6 +50,9 @@ private:
   natsStatus connectionStatus;
   natsStatus natsOptionsCreateStatus;
   natsStatus natsPublishStatus;
+  natsStatus natsSetTimeoutStatus;
+  bool natsConnectionIsClosed;
+
 };
 
 <%SPL::CodeGen::headerEpilogue($model);%>

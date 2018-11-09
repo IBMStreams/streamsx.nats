@@ -190,7 +190,7 @@ void MY_OPERATOR::closedCb(natsConnection * nc, void * closure) {
 }
 
 void MY_OPERATOR::disconnectedCb(natsConnection * nc, void * closure) {
-    SPLAPPTRC(L_INFO, "[NatsSubscribe] Disconnected from server", "");
+    SPLAPPTRC(L_WARN, "[NatsSubscribe] Disconnected from server", "");
 
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(0);
@@ -198,7 +198,7 @@ void MY_OPERATOR::disconnectedCb(natsConnection * nc, void * closure) {
 }
 
 void MY_OPERATOR::reconnectedCb(natsConnection * nc, void * closure) {
-    SPLAPPTRC(L_INFO, "[NatsSubscribe] Reconnected to server", "");
+    SPLAPPTRC(L_WARN, "[NatsSubscribe] Reconnected to server", "");
 
     MY_OPERATOR * opInstance = (MY_OPERATOR *) closure;
     opInstance->isConnected->setValue(1);
