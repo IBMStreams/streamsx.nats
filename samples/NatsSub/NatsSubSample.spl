@@ -1,0 +1,20 @@
+use com.ibm.streamsx.nats::NatsSubscribe;
+
+composite NatsSubSample {
+    graph
+
+        stream<blob my_data> natsMsgs = NatsSubscribe() {
+            param
+                hostname: "localhost";
+                port: 4222;
+                subject: "foo";
+                queueGroup: "group1";
+                skipVerification: true;
+                reconnectAttempts: 5;
+                reconnectDelay: 10;
+        }
+
+        () as sink = Custom(natsMsgs) {
+            logic onTuple natsMsgs: println("Received: " + convertFromBlob(natsMsgs.my_data));
+        }
+}

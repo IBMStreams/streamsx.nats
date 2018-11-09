@@ -125,7 +125,7 @@
           <optional>true</optional>
           <rewriteAllowed>true</rewriteAllowed>
           <expressionMode>AttributeFree</expressionMode>
-          <type>int64</type>
+          <type>int32</type>
           <cardinality>1</cardinality>
       </parameter>
     </parameters>
