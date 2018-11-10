@@ -18,8 +18,8 @@ composite NatsPubSubSample {
                 subject : "foo";
                 skipVerification : true;
                 content : data;
-                reconnectAttempts: 5;
-                reconnectDelay: 1000;
+                reconnectAttempts: 2;
+                reconnectDelaySeconds: 1;
         }
 
         stream<blob my_data> natsMsgs = NatsSubscribe() {

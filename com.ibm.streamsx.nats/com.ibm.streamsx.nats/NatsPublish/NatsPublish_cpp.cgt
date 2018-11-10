@@ -73,8 +73,8 @@ void MY_OPERATOR::setupConnection()
         natsOptions_SetMaxReconnect(this->opts, <%=$model->getParameterByName("reconnectAttempts")->getValueAt(0)->getCppExpression()%>);
         <% } %>
 
-    <% if (defined $model->getParameterByName("reconnectDelay")) { %>
-        natsOptions_SetReconnectWait(this->opts, <%=$model->getParameterByName("reconnectDelay")->getValueAt(0)->getCppExpression()%>);
+    <% if (defined $model->getParameterByName("reconnectDelaySeconds")) { %>
+        natsOptions_SetReconnectWait(this->opts, (<%=$model->getParameterByName("reconnectDelaySeconds")->getValueAt(0)->getCppExpression()%>) * 1000);
         <% } %>
 
     natsOptions_SetClosedCB(this->opts, MY_OPERATOR::closedCb, (void *) this);

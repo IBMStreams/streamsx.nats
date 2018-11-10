@@ -24,8 +24,8 @@ composite NatsPubSample {
                 subject : "foo";
                 skipVerification : true;
                 content : data;
-                reconnectAttempts: 5;
-                reconnectDelay: 1000;
+                reconnectAttempts: 2;
+                reconnectDelaySeconds: 1;
         }
 
 }

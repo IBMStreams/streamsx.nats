@@ -120,7 +120,7 @@
           <cardinality>1</cardinality>
       </parameter>
       <parameter>
-          <name>reconnectDelay</name>
+          <name>reconnectDelaySeconds</name>
           <description></description>
           <optional>true</optional>
           <rewriteAllowed>true</rewriteAllowed>
