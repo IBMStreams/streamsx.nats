@@ -8,7 +8,6 @@ composite NatsPubSubSample {
             param
                 period : 1.0; // Every second
                 initDelay : 3.0;
-                
             output Beat : data = convertToBlob("Hello Nats!!! #" + (rstring)IterationCount());
         }
 
@@ -19,23 +18,20 @@ composite NatsPubSubSample {
                 subject : "foo";
                 skipVerification : true;
                 content : data;
-
+                reconnectAttempts: 2;
+                reconnectDelaySeconds: 1;
         }
 
-
-
-
-        stream<blob data> natsMsgs = NatsSubscribe() {
+        stream<blob my_data> natsMsgs = NatsSubscribe() {
             param
                 hostname: "localhost";
                 port: 4222;
                 subject: "foo";
                 queueGroup: "group1";
-
                 skipVerification: true;
         }
 
         () as sink = Custom(natsMsgs) {
-            logic onTuple natsMsgs: println("Received: " + convertFromBlob(natsMsgs.data));
+            logic onTuple natsMsgs: println("Received: " + convertFromBlob(natsMsgs.my_data));
         }
 }

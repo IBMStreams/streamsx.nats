@@ -1,0 +1,31 @@
+use com.ibm.streamsx.nats::NatsPublish;
+
+composite NatsPubSample {
+    graph
+
+        stream<blob data> BeaconData = Beacon() {
+            param
+                period : 1.0; // Every second
+                initDelay : 3.0;
+            output BeaconData : data = convertToBlob("Hello Nats!!! #" + (rstring)IterationCount());
+        }
+
+        stream<BeaconData> BeaconOut = Custom(BeaconData) {
+            logic onTuple BeaconData: {
+              println("Sending: " + convertFromBlob(BeaconData.data));
+              submit(BeaconData,BeaconOut);
+            }
+        }
+
+        () as NatsSink = NatsPublish(BeaconOut) {
+            param
+                hostname : "localhost";
+                port : 4222;
+                subject : "foo";
+                skipVerification : true;
+                content : data;
+                reconnectAttempts: 2;
+                reconnectDelaySeconds: 1;
+        }
+
+}
